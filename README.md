@@ -91,3 +91,14 @@ Suricata, Node.js, HTML, CSS, JavaScript
 ## Disclaimer
 
 This project is for educational purposes. Run attack tests only on networks you own or have permission to test.
+
+##screenshots
+
+
+![Terminal](screenshots/terminal.png)
+
+![Dashboard](screenshots/dashboard.png)
+
+![Rules](screenshots/rules.png)
+
+![Blocked](screenshots/blocked.png)
