@@ -1,6 +1,6 @@
 # Network Intrusion Detection System (NIDS)
 
-A lightweight network intrusion detection system built with **Suricata rules**, a **Node.js** monitoring server, and a live **HTML/CSS/JavaScript** dashboard.
+A lightweight network intrusion detection system built with **Suricata rules**, a **Node.js** monitoring server, and a live **HTML/CSS/JavaScript** dashboard. Task 3 of the **CodeAlpha Cybersecurity Internship**.
 
 ## Features
 
