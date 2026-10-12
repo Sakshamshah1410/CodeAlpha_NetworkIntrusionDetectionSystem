@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NIDS Dashboard</title>
+<style>
+  body { font-family: Arial, sans-serif; background: #0d1117; color: #e6edf3; margin: 0; padding: 16px; }
+  .cards { display: flex; gap: 12px; flex-wrap: wrap; }
+  .box { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 12px; margin: 12px 0; }
+  .cards .box { flex: 1; min-width: 140px; margin: 0 0 12px; }
+  .big { font-size: 28px; font-weight: bold; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  td, th { text-align: left; padding: 6px; border-bottom: 1px solid #30363d; }
+  .bar { background: #58a6ff; height: 14px; border-radius: 3px; }
+  .s1 { color: #f85149; font-weight: bold; } .s2 { color: #d29922; } .s3 { color: #58a6ff; }
+  button { background: none; color: #e6edf3; border: 1px solid #30363d; border-radius: 4px; cursor: pointer; }
+</style>
+</head>
+<body>
+  <h2>🛡️ Network Intrusion Detection</h2>
+  <div class="cards">
+    <div class="box">Total Alerts<div class="big" id="total">0</div></div>
+    <div class="box">High Severity<div class="big s1" id="high">0</div></div>
+    <div class="box">Blocked IPs<div class="big s2" id="nblocked">0</div></div>
+  </div>
+
+  <div class="box"><b>Top Attackers</b><table id="top"></table></div>
+  <div class="box"><b>Blocked IPs</b><table id="blocked"></table></div>
+  <div class="box"><b>Live Alerts</b>
+    <table><thead><tr><th>Time</th><th>Sev</th><th>Attack</th><th>Source IP</th></tr></thead><tbody id="feed"></tbody></table>
+  </div>
+
+<script>
+const $ = id => document.getElementById(id);
+function row(parent, cells) {               // safe: uses textContent, not innerHTML
+  const tr = document.createElement('tr');
+  cells.forEach(c => {
+    const td = document.createElement('td');
+    if (c instanceof Node) td.appendChild(c); else { td.textContent = c.t; if (c.c) td.className = c.c; }
+    tr.appendChild(td);
+  });
+  parent.appendChild(tr);
+}
+async function refresh() {
+  const d = await (await fetch('/api')).json();
+  $('total').textContent = d.alerts.length;
+  $('high').textContent = d.alerts.filter(a => a.sev === 1).length;
+  $('nblocked').textContent = Object.keys(d.blocked).length;
+
+  $('feed').innerHTML = '';
+  d.alerts.slice(0, 30).forEach(a => row($('feed'), [{ t: a.time }, { t: 'S' + a.sev, c: 's' + a.sev }, { t: a.sig }, { t: a.ip }]));
+
+  $('top').innerHTML = '';
+  const top = Object.entries(d.counts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const max = top.length ? top[0][1] : 1;
+  top.forEach(([ip, n]) => {
+    const bar = document.createElement('div'); bar.className = 'bar'; bar.style.width = (n / max * 100) + '%';
+    row($('top'), [{ t: ip }, { t: n }, bar]);
+  });
+
+  $('blocked').innerHTML = '';
+  Object.entries(d.blocked).forEach(([ip, time]) => {
+    const b = document.createElement('button'); b.textContent = 'Unblock';
+    b.onclick = () => fetch('/unblock?ip=' + encodeURIComponent(ip));
+    row($('blocked'), [{ t: ip }, { t: 'since ' + time }, b]);
+  });
+}
+setInterval(refresh, 1000); refresh();
+</script>
+</body>
+</html>
